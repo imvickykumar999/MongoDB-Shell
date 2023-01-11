@@ -1,0 +1,371 @@
+
+https://www.codewithharry.com/blogpost/mongodb-cheatsheet/
+
+Please enter a MongoDB connection string (Default: mongodb://localhost/): test
+test
+Current Mongosh Log ID: 63be59128b5a5d530abf0c05
+Connecting to:          mongodb://127.0.0.1:27017/test?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.6.2
+Using MongoDB:          6.0.3
+Using Mongosh:          1.6.2
+
+For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+------
+   The server generated these startup warnings when booting
+   2023-01-11T11:48:09.938+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+------
+
+------
+   Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+   metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+   The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+   and anyone you share the URL with. MongoDB may use this information to make product
+   improvements and to suggest MongoDB products and deployment options to you.
+
+   To enable free monitoring, run the following command: db.enableFreeMonitoring()
+   To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+------
+
+test> show dbs
+admin   40.00 KiB
+appdb   72.00 KiB
+config  72.00 KiB
+local   72.00 KiB
+test> show dbs;
+admin   40.00 KiB
+appdb   72.00 KiB
+config  72.00 KiB
+local   72.00 KiB
+test> use dbName
+switched to db dbName
+dbName> db
+dbName
+dbName> db.dropDatabase()
+{ ok: 1, dropped: 'dbName' }
+dbName> db
+dbName
+dbName> show dbs;
+admin   40.00 KiB
+appdb   72.00 KiB
+config  72.00 KiB
+local   72.00 KiB
+dbName> use dbName
+already on db dbName
+dbName> show dbs;
+admin   40.00 KiB
+appdb   72.00 KiB
+config  72.00 KiB
+local   72.00 KiB
+dbName> use mydb
+switched to db mydb
+mydb> db
+mydb
+mydb> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb> db.dropDatabase()
+{ ok: 1, dropped: 'mydb' }
+mydb> mongosh --version
+Uncaught:
+SyntaxError: Missing semicolon. (1:10)
+
+> 1 | mongosh --version
+    |           ^
+  2 |
+
+mydb> show collections
+
+mydb> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb> db.createCollection('myComments')
+{ ok: 1 }
+mydb> show collections
+myComments
+mydb> db.myComments.drop()
+true
+mydb> show collections
+
+mydb> db.createCollection('myComments')
+{ ok: 1 }
+mydb> show collections
+myComments
+mydb> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb      8.00 KiB
+mydb> db.comments.insert({
+... 'name':'Harry',
+... 'lang':'JavaScript',
+... 'member_since':5
+... })
+DeprecationWarning: Collection.insert() is deprecated. Use insertOne, insertMany, or bulkWrite.
+{
+  acknowledged: true,
+  insertedIds: { '0': ObjectId("63be5cd4de3476231a34285f") }
+}
+mydb> clr
+ReferenceError: clr is not defined
+mydb> clear
+ReferenceError: clear is not defined
+mydb> db.comments.insertMany([{ 'name': 'Harry', 'lang': 'JavaScript', 'member_since': 5 }, { 'name': 'Piyush', 'lang': 'Python', 'member_since': 3 }, { 'name': 'Vicky', 'lang': 'Java', 'member_since': 6 }])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("63be5e2dde3476231a342860"),
+    '1': ObjectId("63be5e2dde3476231a342861"),
+    '2': ObjectId("63be5e2dde3476231a342862")
+  }
+}
+mydb> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb     48.00 KiB
+mydb> show collections
+comments
+myComments
+mydb> db.users.insertMany([{name:"Mill"},{name:"Gem", age:40, address:{street:"987 North St"}, hobbies:["Running"]}])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("63be5e6cde3476231a342863"),
+    '1': ObjectId("63be5e6cde3476231a342864")
+  }
+}
+mydb> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb    120.00 KiB
+mydb> show collections
+comments
+myComments
+users
+mydb> show collections
+comments
+myComments
+users
+mydb> db
+mydb
+mydb> db.myComments.insertMany([{name:"Mill"},{name:"Gem", age:40, address:{street:"987 North St"}, hobbies:["Running"]}])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("63be5f1dde3476231a342865"),
+    '1': ObjectId("63be5f1dde3476231a342866")
+  }
+}
+mydb> db
+mydb
+mydb> db.comments.find()
+[
+  {
+    _id: ObjectId("63be5cd4de3476231a34285f"),
+    name: 'Harry',
+    lang: 'JavaScript',
+    member_since: 5
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342860"),
+    name: 'Harry',
+    lang: 'JavaScript',
+    member_since: 5
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342861"),
+    name: 'Piyush',
+    lang: 'Python',
+    member_since: 3
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342862"),
+    name: 'Vicky',
+    lang: 'Java',
+    member_since: 6
+  }
+]
+mydb> db.myComments.find()
+[
+  { _id: ObjectId("63be5f1dde3476231a342865"), name: 'Mill' },
+  {
+    _id: ObjectId("63be5f1dde3476231a342866"),
+    name: 'Gem',
+    age: 40,
+    address: { street: '987 North St' },
+    hobbies: [ 'Running' ]
+  }
+]
+mydb> db.users.find()
+[
+  { _id: ObjectId("63be5e6cde3476231a342863"), name: 'Mill' },
+  {
+    _id: ObjectId("63be5e6cde3476231a342864"),
+    name: 'Gem',
+    age: 40,
+    address: { street: '987 North St' },
+    hobbies: [ 'Running' ]
+  }
+]
+mydb> db.users.find().preety()
+TypeError: db.users.find().preety is not a function
+mydb> db.users.find().pretty()
+[
+  { _id: ObjectId("63be5e6cde3476231a342863"), name: 'Mill' },
+  {
+    _id: ObjectId("63be5e6cde3476231a342864"),
+    name: 'Gem',
+    age: 40,
+    address: { street: '987 North St' },
+    hobbies: [ 'Running' ]
+  }
+]
+mydb> db.comments.find().pretty()
+[
+  {
+    _id: ObjectId("63be5cd4de3476231a34285f"),
+    name: 'Harry',
+    lang: 'JavaScript',
+    member_since: 5
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342860"),
+    name: 'Harry',
+    lang: 'JavaScript',
+    member_since: 5
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342861"),
+    name: 'Piyush',
+    lang: 'Python',
+    member_since: 3
+  },
+  {
+    _id: ObjectId("63be5e2dde3476231a342862"),
+    name: 'Vicky',
+    lang: 'Java',
+    member_since: 6
+  }
+]
+mydb> db.users.insertOne({name:"John"})
+
+mydb> db.users.insertOne({name:"Sally", age:19, address:{street:"987 North St"}, hobbies:["Running"]})
+
+mydb> db.users.insertMany([{name:"Jill"},{name:"Mike"}])
+
+mydb> db.users.find().sort({age:1, name:-1}).limit(2)
+
+mydb> db.users.find({ age: { $gte: 20, $lte: 40 } })
+
+mydb> db.users.find()
+
+mydb> db.users.find().sort({age:1, name:-1}).limit(2)
+
+mydb> db.users.find({ $or: [{ age: { $lte: 20}}, {name: "Kyle" }] })
+
+mydb> db.users.find({age:{$eq:19}})
+
+mydb> db.users.find({age:{$gte:19}})
+
+mydb> db.users.find({age:{$lte:19}})
+
+mydb> db.users.find({age:{$not:{$gte:19}}})
+
+mydb> db.users.find({name:{$not:{$eq:"Jill"}}})
+
+mydb> db.users.insertMany([{name:"Mill"},{name:"Gem", age:40, address:{street:"987 North St"}, hobbies:["Running"]}])
+
+mydb> db.users.find({ $or: [{ age: { $lte: 20}, {name: "Kyle" } }] })
+Uncaught:
+SyntaxError: Unexpected token (1:42)
+
+> 1 | db.users.find({ $or: [{ age: { $lte: 20}, {name: "Kyle" } }] })
+    |
+    ^
+  2 |
+
+mydb> db.users.find({ $or: [{ age: { $lte: 20}}, {name: "Kyle" }] })
+
+mydb> use users
+switched to db users
+users> db.users.find({ $or: [{ age: { $lte: 20}}, {name: "Kyle" }] })
+
+users> db.users.insertOne({name:"John"})
+{
+  acknowledged: true,
+  insertedId: ObjectId("63be61fbde3476231a342867")
+}
+users> db.users.insertOne({name:"Sally", ageusers> db.users.insertOne({name:"Sally", age:19, address:{street:"987 North St"}, hobbiehobbies:["Running"]})
+{
+  acknowledged: true,
+  insertedId: ObjectId("63be6201de3476231a342868")
+}
+users> db.users.insertMany([{name:"Jill"},{nname:"Mike"}])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("63be6207de3476231a342869"),
+    '1': ObjectId("63be6207de3476231a34286a")
+  }
+}
+users> db.users.find().sort({age:1, name:-1}).limit(2)
+[
+  { _id: ObjectId("63be6207de3476231a34286a"), name: 'Mike' },
+  { _id: ObjectId("63be61fbde3476231a342867"), name: 'John' }
+]
+users> db.users.find({ age: { $gte: 20, $lte$lte: 40 } })
+
+users> db.users.find()
+[
+  { _id: ObjectId("63be61fbde3476231a342867"), name: 'John' },
+  {
+    _id: ObjectId("63be6201de3476231a342868"),
+    name: 'Sally',
+    age: 19,
+    address: { street: '987 North St' },
+    hobbies: [ 'Running' ]
+  },
+  { _id: ObjectId("63be6207de3476231a342869"), name: 'Jill' },
+  { _id: ObjectId("63be6207de3476231a34286a"), name: 'Mike' }
+]
+users> db.users.find().sort({age:1, name:-1}).limit(2)
+[
+  { _id: ObjectId("63be6207de3476231a34286a"), name: 'Mike' },
+  { _id: ObjectId("63be61fbde3476231a342867"), name: 'John' }
+]
+users> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb    152.00 KiB
+users    40.00 KiB
+users> db.dropDatabase()
+{ ok: 1, dropped: 'users' }
+users> show dbs
+admin    40.00 KiB
+appdb    72.00 KiB
+config  108.00 KiB
+local    72.00 KiB
+mydb    152.00 KiB
+users> db.users.find({ $or: [{ age: { $lte: 20}}, {name: "Kyle" }] })
+
+users> db.users.insertMany([{name:"Mill"},{name:"Gem", age:40, address:{street:"987 Nort
+h St"}, hobbies:["Running"]}])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("63be626ade3476231a34286b"),
+    '1': ObjectId("63be626ade3476231a34286c")
+  }
+}
+users>
