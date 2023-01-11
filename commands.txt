@@ -368,4 +368,14 @@ h St"}, hobbies:["Running"]}])
     '1': ObjectId("63be626ade3476231a34286c")
   }
 }
-users>
+users> use mydb
+mydb> db.comments.find({lang:'Python'})
+[
+  {
+    _id: ObjectId("63be5e2dde3476231a342861"),
+    name: 'Piyush',
+    lang: 'Python',
+    member_since: 3
+  }
+]
+mydb>
