@@ -2,26 +2,41 @@
 # pip install Flask-PyMongo
 # https://stackabuse.com/integrating-mongodb-with-flask-using-flask-pymongo/
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_pymongo import PyMongo
+import json
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/myDatabase"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/todo_db"
 mongo = PyMongo(app)
 db = mongo.db
 
-@app.route('/')
-def home_page():
-    mydict = { "name": "John", "address": "Highway 37" }
+@app.route("/add_one")
+def add_one():
+    db.todos.insert_one({'title': "todo title", 'body': "todo body"})
+    return jsonify(message="success")
 
-    x = db.todos.insert_one(mydict)
-    print(x.inserted_id)
+@app.route("/add_many")
+def add_many():
+    db.todos.insert_many([
+        {'title': "todo title one ", 'body': "todo body one "},
+        {'title': "todo title two", 'body': "todo body two"},
+        {'title': "todo title three", 'body': "todo body three"},
+        {'title': "todo title four", 'body': "todo body four"},
+        {'title': "todo title five", 'body': "todo body five"},
+        {'title': "todo title six", 'body': "todo body six"},
+        ])
+    return jsonify(message="success")
 
-    for x in db.todos.find():
-        print(x)
+@app.route("/")
+def home():
+    todos = db.todos.find()
+    return json.loads(json.dumps(todos))
 
-    return render_template('index.html', 
-                            online_users=list(db.todos.find()))
+@app.route("/get_todo/<string:todoId>")
+def insert_one(todoId):
+    todo = db.todos.find_one({"_id": todoId})
+    return jsonify(message=todo)
 
 @app.route("/user/<username>")
 def user_profile(username):
