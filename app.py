@@ -2,9 +2,9 @@
 # pip install Flask-PyMongo
 # https://stackabuse.com/stringegrating-mongodb-with-flask-using-flask-pymongo/
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
-import json
+import bson.json_util as json_util
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/todo_db"
@@ -18,29 +18,34 @@ def add_one():
 
 @app.route("/add_many")
 def add_many():
-    db.todos.insert_many([
-        {'_id': 1, 'title': "todo title one ", 'body': "todo body one "},
-        {'_id': 2, 'title': "todo title two", 'body': "todo body two"},
-        {'_id': 3, 'title': "todo title three", 'body': "todo body three"},
-        {'_id': 4, 'title': "todo title four", 'body': "todo body four"},
-        {'_id': 5, 'title': "todo title five", 'body': "todo body five"},
-        ])
-    return jsonify(message="success")
+    try:
+        todo_many = db.todos.insert_many([
+            {'title': "todo title one ", 'body': "todo body one "},
+            {'title': "todo title two", 'body': "todo body two"},
+            {'title': "todo title three", 'body': "todo body three"},
+            {'title': "todo title four", 'body': "todo body four"},
+            {'title': "todo title five", 'body': "todo body five"},
+            {'title': "todo title six", 'body': "todo body six"},
+        ], ordered=False)
+    except Exception as e:
+        return jsonify(message="duplicates encountered and ignored")
+
+    return jsonify(message="success", insertedIds=todo_many.inserted_ids)
 
 @app.route("/")
 def home():
     todos = db.todos.find()
-    return jsonify([todo for todo in todos])
+    return json_util.dumps([todo for todo in todos])
 
 @app.route("/get_todo/<string:todoId>")
 def insert_one(todoId):
     todo = db.todos.find_one({"_id": todoId})
-    return jsonify(message=todo)
+    return json_util.dumps(message=todo)
 
 @app.route("/replace_todo/<string:todoId>")
 def replace_one(todoId):
     result = db.todos.replace_one({'_id': todoId}, {'title': "modified title"})
-    return {'id': result.raw_result}
+    return json_util.dumps({'id': result.raw_result})
 
 @app.route("/update_todo/<string:todoId>")
 def update_one(todoId):
