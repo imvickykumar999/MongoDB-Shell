@@ -1,93 +1,112 @@
 
-# pip install Flask-PyMongo
-# https://stackabuse.com/stringegrating-mongodb-with-flask-using-flask-pymongo/
-
-from flask import Flask, jsonify, request
+from flask import Flask, request 
 from flask_pymongo import PyMongo
-import bson.json_util as json_util
+from flask_restful import Resource, Api
+from bson.objectid import ObjectId
+from cerberus import Validator
+
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/todo_db"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/practise"
 mongo = PyMongo(app)
-db = mongo.db
+api = Api(app)
 
-@app.route("/add_one")
-def add_one():
-    db.todos.insert_one({'title': "todo title", 'body': "todo body"})
-    return jsonify(message="success")
 
-@app.route("/add_many")
-def add_many():
-    try:
-        todo_many = db.todos.insert_many([
-            {'title': "todo title one ", 'body': "todo body one "},
-            {'title': "todo title two", 'body': "todo body two"},
-            {'title': "todo title three", 'body': "todo body three"},
-            {'title': "todo title four", 'body': "todo body four"},
-            {'title': "todo title five", 'body': "todo body five"},
-            {'title': "todo title six", 'body': "todo body six"},
-        ], ordered=False)
-    except Exception as e:
-        return jsonify(message="duplicates encountered and ignored")
+@api.resource('/user', endpoint="users")
+class UserList(Resource):
+    def get(self):
+        result = mongo.db.user.find({})
+        data = []
+    
+        for row in result:
+            print("row",row)
+            temp = {}
 
-    return jsonify(message="success", insertedIds=todo_many.inserted_ids)
+            temp["_id"] = str(row["_id"])
+            temp["name"] = row['name']
+            temp["age"] = row["age"]
+            temp["salary"] = row['salary']
 
-@app.route("/")
-def home():
-    todos = db.todos.find()
-    return json_util.dumps([todo for todo in todos])
+            data.append(temp)
+         
+        return data,200
 
-@app.route("/get_todo/<string:todoId>")
-def insert_one(todoId):
-    todo = db.todos.find_one({"_id": todoId})
-    return json_util.dumps(message=todo)
 
-@app.route("/replace_todo/<string:todoId>")
-def replace_one(todoId):
-    result = db.todos.replace_one({'_id': todoId}, {'title': "modified title"})
-    return json_util.dumps({'id': result.raw_result})
+    def post(self):
+        try:
+            data = request.get_json()
+            temp = {
+                "name":data.get('name'),
+                "age":data.get("age"),
+                "salary":data.get("salary"),
+            }
 
-@app.route("/update_todo/<string:todoId>")
-def update_one(todoId):
-    result = db.todos.update_one({'_id': todoId}, {"$set": {'title': "updated title"}})
-    return result.raw_result
+            Schema = {'name': {'required': True, 'type': 'string'}, 
+            'age': {'type': 'integer', 'min': 18, 'max': 30},
+            'salary':{'type':'number'}}
 
-@app.route('/update_many')
-def update_many():
-    todo = db.todos.update_many({'title' : 'todo title two'}, {"$set": {'body' : 'updated body'}})
-    return todo.raw_result
+            v = Validator(Schema)
 
-@app.route("/delete_todo/<string:todoId>", methods=['DELETE'])
-def delete_todo(todoId):
-    todo = db.todos.find_one_and_delete({'_id': todoId})
-    if todo is not None:
-        return todo.raw_result
-    return "ID does not exist"
+            if v.validate(temp):
+                _id = mongo.db.user.insert_one(temp)
+            else:
+                _id = None
 
-@app.route('/delete_many', methods=['DELETE'])
-def delete_many():
-    todo = db.todos.delete_many({'title': 'todo title two'})
-    return todo.raw_result
+            return {"status":"OK","_id":str(_id)},201
 
-@app.route("/save_file", methods=['POST', 'GET'])
-def save_file():
-    upload_form = """<h1>Save file</h1>
-                     <form method="POST" enctype="multipart/form-data">
-                     <input type="file" name="file" id="file">
-                     <br><br>
-                     <input type="submit">
-                     </form>"""
-                     
-    if request.method=='POST':
-        if 'file' in request.files:
-            file = request.files['file']
-            mongo.save_file(file.filename, file)
-            return {"file name": file.filename}
-    return upload_form
+        except Exception as e:
+            return {"status":"error","message":str(e)},400
 
-@app.route("/get_file/<filename>")
-def get_file(filename):
-    return mongo.send_file(filename)
+
+@api.resource('/user/<id>', endpoint="user")
+class User(Resource):
+    def get(self, id):
+        try:
+            result = mongo.db.user.find_one({"_id":ObjectId(id)})
+            
+            temp = {}
+            temp["_id"] = str(result["_id"])
+            temp["name"] = result['name']
+            temp["age"] = result['age']
+            temp["salary"] = result['salary']
+
+            return temp,200
+
+        except Exception as e:
+            return {"status":"error","message":str(e)},400
+
+    def put(self, id):
+        data = request.get_json()
+
+        temp = {
+                "name":data.get('name'),
+                "age":data.get("age"),
+                "salary":data.get("salary"),
+            }
+
+        Schema = {'name': {'required': True, 'type': 'string'}, 
+            'age': {'type': 'integer', 'min': 18, 'max': 30},
+            'salary':{'type':'number'}}
+
+        v = Validator(Schema)
+
+        if v.validate(temp):
+            mongo.db.user.update_one({"_id":ObjectId(id)}, {"$set": temp}) 
+            result = mongo.db.user.find_one({"_id":ObjectId(id)})
+
+            temp = {}
+            temp["_id"] = str(result["_id"])
+            temp["name"] = result['name']
+            temp["age"] = result['age']
+            temp["salary"] = result['salary']
+
+            return temp,202
+        else:
+            return {'status':'error'},400
+
+    def delete(self, id):
+        mongo.db.user.delete_one({"_id": ObjectId(id)})
+        return {"status":"OK"},200
 
 if __name__ == '__main__':
     app.run(debug=True)
