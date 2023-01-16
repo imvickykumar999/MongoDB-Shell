@@ -5,6 +5,7 @@ from flask_restful import Resource, Api
 from bson.objectid import ObjectId
 from cerberus import Validator
 import secrets, datetime, hashlib
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/practise"
@@ -15,7 +16,9 @@ my_secret = secrets.token_hex(16)
 print(my_secret)
 app.config['JWT_SECRET_KEY'] = my_secret
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
+jwt = JWTManager(app)
 
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY3Mzg3MTgyNiwianRpIjoiNTAyMGNhZTgtM2Q2My00OTMxLTk0NzEtOWQ5OGJlN2E2ZWY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InNvaGFpYjEyMyIsIm5iZiI6MTY3Mzg3MTgyNiwiZXhwIjoxNjczOTU4MjI2fQ.12uKOrMSFiN3Hs8uKDp3Zj7BFDl44aiC9CS3lYXhMJk
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -29,6 +32,17 @@ def register():
     else:
         return {'msg': 'Username already exists'}, 409
 
+@app.route("/login", methods=["POST"])
+def login():
+    login_details = request.get_json()
+    user_from_db = mongo.db.register.find_one({'username': login_details['username']})
+
+    if user_from_db:
+        encrpted_password = hashlib.sha256(login_details['password'].encode("utf-8")).hexdigest()
+        if encrpted_password == user_from_db['password']:
+            access_token = create_access_token(identity=user_from_db['username'])
+            return access_token, 200
+    return {'msg': 'The username or password is incorrect'}, 401
 
 @api.resource('/user', endpoint="users")
 class UserList(Resource):
@@ -46,7 +60,6 @@ class UserList(Resource):
             temp["salary"] = row['salary']
 
             data.append(temp)
-         
         return data,200
 
 
