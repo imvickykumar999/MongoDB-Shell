@@ -105,8 +105,12 @@ class User(Resource):
             return {'status':'error'},400
 
     def delete(self, id):
-        mongo.db.user.delete_one({"_id": ObjectId(id)})
-        return {"status":"OK"},200
+        result = mongo.db.user.find_one({"_id":ObjectId(id)})
+        if result == None:
+            return {'status':'error'},400
+        else:
+            mongo.db.user.delete_one({"_id": ObjectId(id)})
+            return {"status":"OK"},200
 
 if __name__ == '__main__':
     app.run(debug=True)
