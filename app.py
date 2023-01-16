@@ -7,10 +7,12 @@ from cerberus import Validator
 import secrets, datetime, hashlib
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
+
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/practise"
 mongo = PyMongo(app)
 api = Api(app)
+
 
 my_secret = secrets.token_hex(16)
 print(my_secret)
@@ -19,6 +21,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
 jwt = JWTManager(app)
 
 # eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY3Mzg3MTgyNiwianRpIjoiNTAyMGNhZTgtM2Q2My00OTMxLTk0NzEtOWQ5OGJlN2E2ZWY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InNvaGFpYjEyMyIsIm5iZiI6MTY3Mzg3MTgyNiwiZXhwIjoxNjczOTU4MjI2fQ.12uKOrMSFiN3Hs8uKDp3Zj7BFDl44aiC9CS3lYXhMJk
+
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -32,6 +35,7 @@ def register():
     else:
         return {'msg': 'Username already exists'}, 409
 
+
 @app.route("/login", methods=["POST"])
 def login():
     login_details = request.get_json()
@@ -44,6 +48,22 @@ def login():
             return access_token, 200
     return {'msg': 'The username or password is incorrect'}, 401
 
+
+@app.route("/fetch_all")
+def fetch_all():
+    result = mongo.db.register.find({})
+    data = []
+
+    for row in result:
+        temp = {}
+        temp["_id"] = str(row["_id"])
+        temp["username"] = row['username']
+        temp["password"] = row["password"]
+
+        data.append(temp)
+    return data,200
+
+
 @api.resource('/user', endpoint="users")
 class UserList(Resource):
     def get(self):
@@ -51,9 +71,7 @@ class UserList(Resource):
         data = []
     
         for row in result:
-            print("row",row)
             temp = {}
-
             temp["_id"] = str(row["_id"])
             temp["name"] = row['name']
             temp["age"] = row["age"]
@@ -142,6 +160,7 @@ class User(Resource):
         else:
             mongo.db.user.delete_one({"_id": ObjectId(id)})
             return {"status":"OK"},200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
