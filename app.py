@@ -4,12 +4,30 @@ from flask_pymongo import PyMongo
 from flask_restful import Resource, Api
 from bson.objectid import ObjectId
 from cerberus import Validator
-
+import secrets, datetime, hashlib
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/practise"
 mongo = PyMongo(app)
 api = Api(app)
+
+my_secret = secrets.token_hex(16)
+print(my_secret)
+app.config['JWT_SECRET_KEY'] = my_secret
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
+
+
+@app.route("/register", methods=["POST"])
+def register():
+    new_user = request.get_json()
+    new_user["password"] = hashlib.sha256(new_user["password"].encode("utf-8")).hexdigest()
+    doc = mongo.db.register.find_one({"username": new_user["username"]})
+
+    if not doc:
+        mongo.db.register.insert_one(new_user)
+        return {'msg': 'User created successfully'}, 201
+    else:
+        return {'msg': 'Username already exists'}, 409
 
 
 @api.resource('/user', endpoint="users")
