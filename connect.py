@@ -1,13 +1,15 @@
+
 from flask import Flask, request 
 from flask_pymongo import PyMongo
 from flask_restful import Resource, Api
 from bson.objectid import ObjectId
+from cerberus import Validator
+
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/practise"
 mongo = PyMongo(app)
 api = Api(app)
-
 
 
 @api.resource('/user', endpoint="users")
@@ -30,15 +32,21 @@ class UserList(Resource):
     def post(self):
         try:
             data = request.get_json()
-
             temp = {
                 "name":data.get('name'),
                 "age":data.get("age"),
                 "salary":data.get("salary"),
-                "common_id":data.get("common_id")
             }
 
-            _id = mongo.db.user.insert_one(temp)
+            Schema = {'name': {'required': True, 'type': 'string'}, 
+            'age': {'type': 'integer', 'min': 18, 'max': 30},
+            'salary':{'type':'string'}}
+            v = Validator(Schema)
+
+            if v.validate(temp):
+                _id = mongo.db.user.insert_one(temp)
+            else:
+                _id = None
 
             return {"status":"OK","_id":str(_id)},201
 
