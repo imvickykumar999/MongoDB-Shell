@@ -5,7 +5,7 @@ from flask_restful import Resource, Api
 from bson.objectid import ObjectId
 from cerberus import Validator
 import secrets, datetime, hashlib
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from flask_jwt_extended import JWTManager, create_access_token
 
 
 app = Flask(__name__)
@@ -19,8 +19,6 @@ print(my_secret)
 app.config['JWT_SECRET_KEY'] = my_secret
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
 jwt = JWTManager(app)
-
-# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY3Mzg3MTgyNiwianRpIjoiNTAyMGNhZTgtM2Q2My00OTMxLTk0NzEtOWQ5OGJlN2E2ZWY1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InNvaGFpYjEyMyIsIm5iZiI6MTY3Mzg3MTgyNiwiZXhwIjoxNjczOTU4MjI2fQ.12uKOrMSFiN3Hs8uKDp3Zj7BFDl44aiC9CS3lYXhMJk
 
 
 @app.route("/register", methods=["POST"])
