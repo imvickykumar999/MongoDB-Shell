@@ -5,7 +5,7 @@ from flask_restful import Resource, Api
 from bson.objectid import ObjectId
 from cerberus import Validator
 import secrets, datetime, hashlib
-from flask_jwt_extended import JWTManager, create_access_token
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 
 
 app = Flask(__name__)
@@ -64,6 +64,7 @@ def fetch_all():
 
 @api.resource('/user', endpoint="users")
 class UserList(Resource):
+    @jwt_required()
     def get(self):
         result = mongo.db.user.find({})
         data = []
@@ -78,7 +79,7 @@ class UserList(Resource):
             data.append(temp)
         return data,200
 
-
+    @jwt_required()
     def post(self):
         try:
             data = request.get_json()
@@ -107,6 +108,7 @@ class UserList(Resource):
 
 @api.resource('/user/<id>', endpoint="user")
 class User(Resource):
+    @jwt_required()
     def get(self, id):
         try:
             result = mongo.db.user.find_one({"_id":ObjectId(id)})
@@ -122,6 +124,7 @@ class User(Resource):
         except Exception as e:
             return {"status":"error","message":str(e)},400
 
+    @jwt_required()
     def put(self, id):
         data = request.get_json()
 
@@ -142,7 +145,6 @@ class User(Resource):
             result = mongo.db.user.find_one({"_id":ObjectId(id)})
 
             temp = {}
-            temp["_id"] = str(result["_id"])
             temp["name"] = result['name']
             temp["age"] = result['age']
             temp["salary"] = result['salary']
@@ -151,6 +153,7 @@ class User(Resource):
         else:
             return {'status':'error'},400
 
+    @jwt_required()
     def delete(self, id):
         result = mongo.db.user.find_one({"_id":ObjectId(id)})
         if result == None:
