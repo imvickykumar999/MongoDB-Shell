@@ -15,7 +15,6 @@ api = Api(app)
 
 
 my_secret = secrets.token_hex(16)
-print(my_secret)
 app.config['JWT_SECRET_KEY'] = my_secret
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(days=1)
 jwt = JWTManager(app)
@@ -79,6 +78,7 @@ class UserList(Resource):
             data.append(temp)
         return data,200
 
+
     @jwt_required()
     def post(self):
         try:
@@ -124,6 +124,7 @@ class User(Resource):
         except Exception as e:
             return {"status":"error","message":str(e)},400
 
+
     @jwt_required()
     def put(self, id):
         data = request.get_json()
@@ -152,6 +153,7 @@ class User(Resource):
             return temp,202
         else:
             return {'status':'error'},400
+
 
     @jwt_required()
     def delete(self, id):
